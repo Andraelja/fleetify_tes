@@ -25,7 +25,7 @@ func (controller ItemController) Create(c *fiber.Ctx) error {
 	response := controller.Service.Create(c.Context(), request)
 	return c.Status(fiber.StatusCreated).JSON(models.GeneralResponse{
 		Code:    201,
-		Message: "Success",
+		Message: "Success create data!",
 		Data:    response,
 	})
 }
@@ -34,7 +34,7 @@ func (controller ItemController) GetAll(c *fiber.Ctx) error {
 	response := controller.Service.FindAll(c.Context())
 	return c.Status(fiber.StatusOK).JSON(models.GeneralResponse{
 		Code:    200,
-		Message: "Success",
+		Message: "Success get data!",
 		Data:    response,
 	})
 }
@@ -44,7 +44,7 @@ func (controller ItemController) GetById(c *fiber.Ctx) error {
 	response := controller.Service.FindById(c.Context(), id)
 	return c.Status(fiber.StatusOK).JSON(models.GeneralResponse{
 		Code:    200,
-		Message: "Success",
+		Message: "Success get data by id!",
 		Data:    response,
 	})
 }
@@ -58,7 +58,7 @@ func (controller ItemController) Update(c *fiber.Ctx) error {
 	response := controller.Service.Update(c.Context(), request, id)
 	return c.Status(fiber.StatusOK).JSON(models.GeneralResponse{
 		Code:    201,
-		Message: "Success",
+		Message: "Success update data!",
 		Data:    response,
 	})
 }
@@ -68,7 +68,7 @@ func (controller ItemController) Delete(c *fiber.Ctx) error {
 	controller.Service.Delete(c.Context(), id)
 	return c.Status(fiber.StatusOK).JSON(models.GeneralResponse{
 		Code:    200,
-		Message: "Success",
+		Message: "Success delete data!",
 		Data:    nil,
 	})
 }
