@@ -8,6 +8,9 @@ import (
 
 func main() {
 	config.ConnectDatabase()
-	config.DB.AutoMigrate(&models.User{})
+	config.DB.AutoMigrate(
+		&models.User{},
+		&models.Supplier{},
+	)
 	bootstrap.StartServer()
 }
