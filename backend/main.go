@@ -11,6 +11,7 @@ func main() {
 	config.DB.AutoMigrate(
 		&models.User{},
 		&models.Supplier{},
+		&models.Item{},
 	)
 	bootstrap.StartServer()
 }

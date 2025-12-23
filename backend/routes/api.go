@@ -28,4 +28,14 @@ func ApiRoutes(app *fiber.App) {
 	supplier.Get("/:id", supplierController.GetById)
 	supplier.Put("/:id", supplierController.Update)
 	supplier.Delete("/:id", supplierController.Delete)
+
+	itemService := services.NewItemService()
+	itemController := controllers.NewItemController(itemService)
+
+	item := app.Group("/item", middleware.AuthMiddleware)
+	item.Post("/", itemController.Create)
+	item.Get("/", itemController.GetAll)
+	item.Get("/:id", itemController.GetById)
+	item.Put("/:id", itemController.Update)
+	item.Delete("/:id", itemController.Delete)
 }
