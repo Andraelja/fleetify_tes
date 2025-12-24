@@ -202,13 +202,13 @@
           rows = `<tr><td colspan="4" class="text-center">Tidak ada data inventory</td></tr>`;
         } else {
           items.forEach((item, i) => {
-            let status = "Good",
+            let status = "Bagus",
               className = "text-success";
             if (item.stock < 10) {
               status = "Stok Sedikit";
               className = "text-danger";
             } else if (item.stock < 50) {
-              status = "Medium";
+              status = "Cukup";
               className = "text-warning";
             }
             rows += `<tr>
