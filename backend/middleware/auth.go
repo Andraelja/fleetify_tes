@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"backend/services"
 	"backend/utils"
 	"strings"
 
@@ -22,5 +23,13 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"message": "Invalid token"})
 	}
 	c.Locals("username", claims.Username)
+
+	// Fetch user by username to get user ID
+	user, err := services.GetUserByUsername(claims.Username)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"message": "User not found"})
+	}
+	c.Locals("user_id", user.ID)
+
 	return c.Next()
 }

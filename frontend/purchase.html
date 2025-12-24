@@ -178,12 +178,9 @@
           method: "POST",
           data: {
             supplier_id: parseInt($("#supplier").val()),
-            grand_total: cart.reduce((t, i) => t + i.subtotal, 0),
-            items: cart.map((i) => ({
+            details: cart.map((i) => ({
               item_id: i.item_id,
               qty: i.qty,
-              price: i.price,
-              subtotal: i.subtotal,
             })),
           },
           success: function () {

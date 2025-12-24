@@ -35,7 +35,7 @@ func (controller *PurchasingController) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	request.UserID = uint(userID.(float64))
+	request.UserID = userID.(uint)
 
 	response := controller.Service.Create(c.Context(), request)
 
