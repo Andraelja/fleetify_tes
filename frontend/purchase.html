@@ -80,10 +80,6 @@
 
     <script>
       let cart = [];
-
-      /* ===============================
-         LOAD SUPPLIER
-      =============================== */
       apiRequest({
         url: "/supplier",
         success: (res) => {
@@ -93,9 +89,6 @@
         },
       });
 
-      /* ===============================
-         LOAD ITEM (SIMPAN PRICE)
-      =============================== */
       apiRequest({
         url: "/item",
         success: (res) => {
@@ -109,9 +102,6 @@
         },
       });
 
-      /* ===============================
-         ADD TO CART
-      =============================== */
       $("#addItem").click(function () {
         const itemId = parseInt($("#item").val());
         const itemName = $("#item option:selected").text();
@@ -135,18 +125,12 @@
         renderCart();
       });
 
-      /* ===============================
-         DELETE ITEM (EVENT DELEGATION)
-      =============================== */
       $("#cartTable").on("click", ".btn-delete", function () {
         const index = $(this).data("index");
         cart.splice(index, 1);
         renderCart();
       });
 
-      /* ===============================
-         RENDER CART + GRAND TOTAL
-      =============================== */
       function renderCart() {
         let rows = "";
         let total = 0;
@@ -183,9 +167,6 @@
         $("#grandTotal").text("Rp " + total.toLocaleString());
       }
 
-      /* ===============================
-         SUBMIT ORDER
-      =============================== */
       $("#submitOrder").click(function () {
         if (cart.length === 0) {
           Swal.fire("Error", "Keranjang masih kosong", "error");
