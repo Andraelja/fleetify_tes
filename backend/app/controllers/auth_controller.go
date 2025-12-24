@@ -25,18 +25,31 @@ func RegisterHandler(c *fiber.Ctx) error {
 }
 
 func LoginHandler(c *fiber.Ctx) error {
-	var data map[string]string
-	if err := c.BodyParser(&data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request"})
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
 	}
-	token, err := services.LoginUser(data["username"], data["password"])
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+		})
+	}
+
+	token, err := services.LoginUser(req.Username, req.Password)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid username or password",
+		})
 	}
 
 	return c.JSON(responses.LoginResponse{
 		Success: true,
 		Token:   token,
-		Data:    data,
+		Data: fiber.Map{
+			"username": req.Username,
+		},
 	})
 }

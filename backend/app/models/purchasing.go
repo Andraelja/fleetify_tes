@@ -8,7 +8,7 @@ import (
 
 type Purchasing struct {
 	ID         uint               `gorm:"primarykey" json:"id"`
-	Date       time.Time          `gorm:"type:date;not null" json:"date"`
+	Date       time.Time          `gorm:"type:date;not null"`
 	SupplierID uint               `json:"supplier_id"`
 	Supplier   Supplier           `gorm:"foreignKey:SupplierID" json:"supplier"`
 	UserID     uint               `json:"user_id"`
@@ -21,7 +21,6 @@ type Purchasing struct {
 }
 
 type PurchasingCreateOrUpdateModel struct {
-	Date       string                    `json:"date" validate:"required"`
 	SupplierID uint                      `json:"supplier_id" validate:"required"`
 	UserID     uint                      `json:"user_id" validate:"required"`
 	GrandTotal int64                     `json:"grand_total"`

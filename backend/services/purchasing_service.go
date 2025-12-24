@@ -6,9 +6,20 @@ import (
 )
 
 type PurchasingService interface {
-	Create(ctx context.Context, models models.PurchasingCreateOrUpdateModel) models.PurchasingCreateOrUpdateModel
-	Update(ctx context.Context, Purchasing models.PurchasingCreateOrUpdateModel, id string) models.PurchasingCreateOrUpdateModel
+	Create(
+		ctx context.Context,
+		model models.PurchasingCreateOrUpdateModel,
+	) models.Purchasing
+
+	Update(
+		ctx context.Context,
+		model models.PurchasingCreateOrUpdateModel,
+		id string,
+	) models.Purchasing
+
 	Delete(ctx context.Context, id string)
+
 	FindById(ctx context.Context, id string) models.Purchasing
+
 	FindAll(ctx context.Context) []models.Purchasing
 }

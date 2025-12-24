@@ -23,13 +23,13 @@ func NewPurchasingService(webhookService WebhookService) PurchasingService {
 	}
 }
 
+/* =========================
+	CREATE
+========================= */
 func (s *purchasingService) Create(
 	ctx context.Context,
 	model models.PurchasingCreateOrUpdateModel,
-) models.PurchasingCreateOrUpdateModel {
-
-	date, err := time.Parse("2006-01-02", model.Date)
-	exception.PanicLogging(err)
+) models.Purchasing {
 
 	tx := config.DB.Begin()
 	defer func() {
@@ -40,39 +40,37 @@ func (s *purchasingService) Create(
 	}()
 
 	var (
-		grandTotal        int64
-		purchasingDetails []models.PurchasingDetail
+		grandTotal int64
+		details    []models.PurchasingDetail
 	)
 
-	for _, detail := range model.Details {
+	for _, d := range model.Details {
 		var item models.Item
 
 		if err := tx.
 			Clauses(clause.Locking{Strength: "UPDATE"}).
-			First(&item, detail.ItemID).Error; err != nil {
+			First(&item, d.ItemID).Error; err != nil {
 
 			tx.Rollback()
 			if err == gorm.ErrRecordNotFound {
-				exception.PanicLogging(
-					fmt.Errorf("Item dengan ID %d tidak ditemukan", detail.ItemID),
-				)
+				exception.PanicLogging(fmt.Errorf("item %d tidak ditemukan", d.ItemID))
 			}
 			exception.PanicLogging(err)
 		}
 
-		subTotal := item.Price * int64(detail.Qty)
+		subTotal := item.Price * int64(d.Qty)
 		grandTotal += subTotal
 
-		purchasingDetails = append(purchasingDetails, models.PurchasingDetail{
+		details = append(details, models.PurchasingDetail{
 			ItemID:   item.ID,
-			Qty:      detail.Qty,
+			Qty:      d.Qty,
 			Price:    item.Price,
 			SubTotal: subTotal,
 		})
 	}
 
 	purchasing := models.Purchasing{
-		Date:       date,
+		Date:       time.Now(), // 🔥 SET BACKEND
 		SupplierID: model.SupplierID,
 		UserID:     model.UserID,
 		GrandTotal: grandTotal,
@@ -80,39 +78,32 @@ func (s *purchasingService) Create(
 
 	if err := tx.Create(&purchasing).Error; err != nil {
 		tx.Rollback()
-		exception.PanicLogging(
-			fmt.Errorf("Gagal membuat purchasing: %w", err),
-		)
+		exception.PanicLogging(err)
 	}
 
-	for i := range purchasingDetails {
-		purchasingDetails[i].PurchasingID = purchasing.ID
+	for i := range details {
+		details[i].PurchasingID = purchasing.ID
 	}
 
-	if err := tx.Create(&purchasingDetails).Error; err != nil {
+	if err := tx.Create(&details).Error; err != nil {
 		tx.Rollback()
-		exception.PanicLogging(
-			fmt.Errorf("Gagal membuat purchasing details: %w", err),
-		)
+		exception.PanicLogging(err)
 	}
 
-	for _, detail := range purchasingDetails {
+	// Update stock
+	for _, d := range details {
 		if err := tx.Model(&models.Item{}).
-			Where("id = ?", detail.ItemID).
-			UpdateColumn("stock", gorm.Expr("stock + ?", detail.Qty)).
+			Where("id = ?", d.ItemID).
+			UpdateColumn("stock", gorm.Expr("stock + ?", d.Qty)).
 			Error; err != nil {
 
 			tx.Rollback()
-			exception.PanicLogging(
-				fmt.Errorf("Gagal update stock item %d: %w", detail.ItemID, err),
-			)
+			exception.PanicLogging(err)
 		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		exception.PanicLogging(
-			fmt.Errorf("Gagal commit transaction: %w", err),
-		)
+		exception.PanicLogging(err)
 	}
 
 	config.DB.
@@ -125,13 +116,17 @@ func (s *purchasingService) Create(
 		_ = s.webhookService.SendPurchasingNotification(purchasing)
 	}
 
-	model.GrandTotal = grandTotal
-	return model
+	return purchasing
 }
 
-func (s *purchasingService) Update(ctx context.Context, model models.PurchasingCreateOrUpdateModel, id string) models.PurchasingCreateOrUpdateModel {
-	date, err := time.Parse("2006-01-02", model.Date)
-	exception.PanicLogging(err)
+/* =========================
+	UPDATE
+========================= */
+func (s *purchasingService) Update(
+	ctx context.Context,
+	model models.PurchasingCreateOrUpdateModel,
+	id string,
+) models.Purchasing {
 
 	tx := config.DB.Begin()
 	defer func() {
@@ -141,135 +136,97 @@ func (s *purchasingService) Update(ctx context.Context, model models.PurchasingC
 		}
 	}()
 
-	var existingPurchasing models.Purchasing
 	purchasingID, err := strconv.Atoi(id)
 	if err != nil {
-		tx.Rollback()
-		exception.PanicLogging(fmt.Errorf("Invalid purchasing ID: %w", err))
-	}
-	if err := tx.Preload("Details").First(&existingPurchasing, purchasingID).Error; err != nil {
-		tx.Rollback()
-		exception.PanicLogging(fmt.Errorf("Purchasing not found: %w", err))
+		exception.PanicLogging(err)
 	}
 
-	// Subtract old stock
-	for _, detail := range existingPurchasing.Details {
-		if err := tx.Model(&models.Item{}).
-			Where("id = ?", detail.ItemID).
-			UpdateColumn("stock", gorm.Expr("stock - ?", detail.Qty)).
-			Error; err != nil {
-			tx.Rollback()
-			exception.PanicLogging(fmt.Errorf("Failed to update stock for item %d: %w", detail.ItemID, err))
-		}
-	}
-
-	// Delete old details
-	if err := tx.Where("purchasing_id = ?", id).Delete(&models.PurchasingDetail{}).Error; err != nil {
+	var purchasing models.Purchasing
+	if err := tx.Preload("Details").First(&purchasing, purchasingID).Error; err != nil {
 		tx.Rollback()
-		exception.PanicLogging(fmt.Errorf("Failed to delete old details: %w", err))
+		exception.PanicLogging(err)
 	}
 
-	// Now, similar to Create: calculate new grandTotal, create new details, add stock
+	// Rollback old stock
+	for _, d := range purchasing.Details {
+		tx.Model(&models.Item{}).
+			Where("id = ?", d.ItemID).
+			UpdateColumn("stock", gorm.Expr("stock - ?", d.Qty))
+	}
+
+	tx.Where("purchasing_id = ?", purchasingID).
+		Delete(&models.PurchasingDetail{})
+
 	var (
-		grandTotal        int64
-		purchasingDetails []models.PurchasingDetail
+		grandTotal int64
+		newDetails []models.PurchasingDetail
 	)
 
-	for _, detail := range model.Details {
+	for _, d := range model.Details {
 		var item models.Item
-		if err := tx.
-			Clauses(clause.Locking{Strength: "UPDATE"}).
-			First(&item, detail.ItemID).Error; err != nil {
-			tx.Rollback()
-			if err == gorm.ErrRecordNotFound {
-				exception.PanicLogging(fmt.Errorf("Item with ID %d not found", detail.ItemID))
-			}
-			exception.PanicLogging(err)
-		}
+		tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&item, d.ItemID)
 
-		subTotal := item.Price * int64(detail.Qty)
+		subTotal := item.Price * int64(d.Qty)
 		grandTotal += subTotal
 
-		purchasingDetails = append(purchasingDetails, models.PurchasingDetail{
-			PurchasingID: existingPurchasing.ID,
+		newDetails = append(newDetails, models.PurchasingDetail{
+			PurchasingID: purchasing.ID,
 			ItemID:       item.ID,
-			Qty:          detail.Qty,
+			Qty:          d.Qty,
 			Price:        item.Price,
 			SubTotal:     subTotal,
 		})
 	}
 
-	// Update purchasing
-	existingPurchasing.Date = date
-	existingPurchasing.SupplierID = model.SupplierID
-	existingPurchasing.UserID = model.UserID
-	existingPurchasing.GrandTotal = grandTotal
+	purchasing.SupplierID = model.SupplierID
+	purchasing.UserID = model.UserID
+	purchasing.GrandTotal = grandTotal
+	purchasing.Date = time.Now()
 
-	if err := tx.Save(&existingPurchasing).Error; err != nil {
-		tx.Rollback()
-		exception.PanicLogging(fmt.Errorf("Failed to update purchasing: %w", err))
+	tx.Save(&purchasing)
+	tx.Create(&newDetails)
+
+	for _, d := range newDetails {
+		tx.Model(&models.Item{}).
+			Where("id = ?", d.ItemID).
+			UpdateColumn("stock", gorm.Expr("stock + ?", d.Qty))
 	}
 
-	// Create new details
-	if err := tx.Create(&purchasingDetails).Error; err != nil {
-		tx.Rollback()
-		exception.PanicLogging(fmt.Errorf("Failed to create purchasing details: %w", err))
-	}
+	tx.Commit()
 
-	// Add new stock
-	for _, detail := range purchasingDetails {
-		if err := tx.Model(&models.Item{}).
-			Where("id = ?", detail.ItemID).
-			UpdateColumn("stock", gorm.Expr("stock + ?", detail.Qty)).
-			Error; err != nil {
-			tx.Rollback()
-			exception.PanicLogging(fmt.Errorf("Failed to update stock for item %d: %w", detail.ItemID, err))
-		}
-	}
+	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").
+		First(&purchasing, purchasingID)
 
-	if err := tx.Commit().Error; err != nil {
-		exception.PanicLogging(fmt.Errorf("Failed to commit transaction: %w", err))
-	}
-
-	// Reload
-	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").First(&existingPurchasing, purchasingID)
-
-	if s.webhookService != nil {
-		_ = s.webhookService.SendPurchasingNotification(existingPurchasing)
-	}
-
-	model.GrandTotal = grandTotal
-	return model
+	return purchasing
 }
 
+/* =========================
+	DELETE
+========================= */
 func (s *purchasingService) Delete(ctx context.Context, id string) {
 	var purchasing models.Purchasing
-	if err := config.DB.Preload("Details").First(&purchasing, id).Error; err != nil {
-		exception.PanicLogging(fmt.Errorf("Purchasing not found: %w", err))
+	config.DB.Preload("Details").First(&purchasing, id)
+
+	for _, d := range purchasing.Details {
+		config.DB.Model(&models.Item{}).
+			Where("id = ?", d.ItemID).
+			UpdateColumn("stock", gorm.Expr("stock - ?", d.Qty))
 	}
 
-	// Subtract stock
-	for _, detail := range purchasing.Details {
-		if err := config.DB.Model(&models.Item{}).
-			Where("id = ?", detail.ItemID).
-			UpdateColumn("stock", gorm.Expr("stock - ?", detail.Qty)).
-			Error; err != nil {
-			exception.PanicLogging(fmt.Errorf("Failed to update stock for item %d: %w", detail.ItemID, err))
-		}
-	}
-
-	// Soft delete
 	config.DB.Delete(&purchasing)
 }
 
 func (s *purchasingService) FindById(ctx context.Context, id string) models.Purchasing {
 	var purchasing models.Purchasing
-	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").First(&purchasing, id)
+	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").
+		First(&purchasing, id)
 	return purchasing
 }
 
 func (s *purchasingService) FindAll(ctx context.Context) []models.Purchasing {
-	var purchasings []models.Purchasing
-	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").Find(&purchasings)
-	return purchasings
+	var data []models.Purchasing
+	config.DB.Preload("Supplier").Preload("User").Preload("Details.Item").
+		Find(&data)
+	return data
 }
