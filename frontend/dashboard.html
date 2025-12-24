@@ -1,54 +1,164 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Dashboard</title>
+    <title>Dashboard - Inventory Management</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
   </head>
-
-  <body>
-    <div class="container mt-4">
+  <body class="bg-light">
+    <div class="container my-5">
       <!-- HEADER -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Dashboard</h3>
-        <button id="logout" class="btn btn-danger btn-sm">Logout</button>
+      <div class="card shadow-sm mb-4">
+        <div
+          class="card-body d-flex justify-content-between align-items-center flex-wrap"
+        >
+          <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div
+              class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-person-fill fs-3"></i>
+            </div>
+            <div>
+              <h2 class="h4 mb-1">Dashboard</h2>
+              <p class="text-muted mb-0">Selamat Datang Di Sistem Inventory</p>
+            </div>
+          </div>
+          <button id="logout" class="btn btn-outline-primary">
+            <i class="bi bi-box-arrow-right me-1"></i> Keluar
+          </button>
+        </div>
       </div>
 
-      <!-- MENU -->
-      <div class="row mb-4">
-        <div class="col-md-4">
-          <a href="items.html" class="btn btn-primary w-100">Manage Items</a>
+      <!-- STATISTICS -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-center shadow-sm p-3">
+            <div
+              class="bg-primary text-white rounded mb-2 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-box-seam fs-3"></i>
+            </div>
+            <h3 class="h4 mb-1" id="totalItems">0</h3>
+            <p class="text-muted mb-0">Total Item</p>
+          </div>
         </div>
-        <div class="col-md-4">
-          <a href="suppliers.html" class="btn btn-secondary w-100"
-            >Manage Suppliers</a
-          >
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-center shadow-sm p-3">
+            <div
+              class="bg-danger text-white rounded mb-2 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-people fs-3"></i>
+            </div>
+            <h3 class="h4 mb-1" id="totalSuppliers">0</h3>
+            <p class="text-muted mb-0">Total Supplier</p>
+          </div>
         </div>
-        <div class="col-md-4">
-          <a href="purchase.html" class="btn btn-success w-100"
-            >Create Purchase</a
-          >
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-center shadow-sm p-3">
+            <div
+              class="bg-info text-white rounded mb-2 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-cart-check fs-3"></i>
+            </div>
+            <h3 class="h4 mb-1" id="totalPurchases">0</h3>
+            <p class="text-muted mb-0">Total Purchase</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="card text-center shadow-sm p-3">
+            <div
+              class="bg-warning text-white rounded mb-2 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 60px; height: 60px"
+            >
+              <i class="bi bi-exclamation-triangle fs-3"></i>
+            </div>
+            <h3 class="h4 mb-1" id="lowStockCount">0</h3>
+            <p class="text-muted mb-0">Stok Sedikit</p>
+          </div>
         </div>
       </div>
 
-      <!-- INVENTORY SUMMARY -->
-      <div class="card">
-        <div class="card-header">
-          <strong>Inventory Stock</strong>
+      <!-- MENU CARDS -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <a
+            href="items.html"
+            class="card text-center shadow-sm p-4 text-decoration-none text-dark h-100"
+          >
+            <div
+              class="bg-primary text-white rounded mb-3 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 80px; height: 80px"
+            >
+              <i class="bi bi-box-seam-fill fs-2"></i>
+            </div>
+            <h5>Manajemen Item</h5>
+            <p class="text-muted">Tambah, edit, and manajemen inventory item</p>
+          </a>
         </div>
-        <div class="card-body p-0">
-          <table class="table table-bordered mb-0">
+        <div class="col-md-4">
+          <a
+            href="suppliers.html"
+            class="card text-center shadow-sm p-4 text-decoration-none text-dark h-100"
+          >
+            <div
+              class="bg-danger text-white rounded mb-3 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 80px; height: 80px"
+            >
+              <i class="bi bi-people-fill fs-2"></i>
+            </div>
+            <h5>Manajemen Suppliers</h5>
+            <p class="text-muted">Manajemen Supplier</p>
+          </a>
+        </div>
+        <div class="col-md-4">
+          <a
+            href="purchase.html"
+            class="card text-center shadow-sm p-4 text-decoration-none text-dark h-100"
+          >
+            <div
+              class="bg-info text-white rounded mb-3 d-flex align-items-center justify-content-center mx-auto"
+              style="width: 80px; height: 80px"
+            >
+              <i class="bi bi-cart-plus-fill fs-2"></i>
+            </div>
+            <h5>Buat Pembelian</h5>
+            <p class="text-muted">Buat Pembelian Baru</p>
+          </a>
+        </div>
+      </div>
+
+      <!-- INVENTORY TABLE -->
+      <div class="card shadow-sm p-4">
+        <h4 class="mb-4">
+          <i class="bi bi-clipboard-data me-2 text-primary"></i>Stok Saat Ini
+        </h4>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
             <thead class="table-light">
               <tr>
-                <th>Item Name</th>
-                <th width="150">Stock</th>
+                <th>#</th>
+                <th>Nama Item</th>
+                <th>Stok Saat Ini</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="inventoryTable">
               <tr>
-                <td colspan="2" class="text-center">Loading...</td>
+                <td colspan="4" class="text-center">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -57,57 +167,84 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/app.js"></script>
 
     <script>
-      if (!localStorage.getItem("token")) {
-        window.location.href = "login.html";
-      }
-
-      apiRequest({
-        url: "/item",
-        success: function (res) {
-          let rows = "";
-
-          if (!res.data || res.data.length === 0) {
-            rows = `<tr><td colspan="2" class="text-center">No data</td></tr>`;
-          } else {
-            res.data.forEach((item) => {
-              rows += `
-          <tr>
-            <td>${item.name}</td>
-            <td>${item.stock}</td>
-          </tr>
-        `;
-            });
-          }
-
-          $("#inventoryTable").html(rows);
-        },
-        error: function () {
-          $("#inventoryTable").html(`
-      <tr>
-        <td colspan="2" class="text-danger text-center">
-          Failed to load inventory
-        </td>
-      </tr>
-    `);
-        },
-      });
+      if (!localStorage.getItem("token")) window.location.href = "login.html";
 
       $("#logout").click(function () {
         Swal.fire({
-          title: "Logout?",
+          title: "Konfirmasi Keluar",
+          text: "Apakah Anda yakin ingin keluar?",
+          icon: "question",
           showCancelButton: true,
-          confirmButtonText: "Yes",
+          confirmButtonText: "Ya, Keluar",
+          cancelButtonText: "Batal",
+          confirmButtonColor: "#0d6efd",
         }).then((result) => {
           if (result.isConfirmed) {
             localStorage.removeItem("token");
-            window.location.href = "login.html";
+            Swal.fire({
+              title: "Logged Out!",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
+            }).then(() => (window.location.href = "login.html"));
           }
         });
       });
+
+      function renderInventoryTable(items) {
+        let rows = "";
+        if (!items || items.length === 0) {
+          rows = `<tr><td colspan="4" class="text-center">Tidak ada data inventory</td></tr>`;
+        } else {
+          items.forEach((item, i) => {
+            let status = "Good",
+              className = "text-success";
+            if (item.stock < 10) {
+              status = "Stok Sedikit";
+              className = "text-danger";
+            } else if (item.stock < 50) {
+              status = "Medium";
+              className = "text-warning";
+            }
+            rows += `<tr>
+            <td>${i + 1}</td>
+            <td>${item.name}</td>
+            <td>${item.stock} unit</td>
+            <td class="${className} fw-bold">${status}</td>
+          </tr>`;
+          });
+        }
+        $("#inventoryTable").html(rows);
+      }
+
+      function loadStatistics() {
+        apiRequest({
+          url: "/item",
+          success: (res) => {
+            $("#totalItems").text(res.data ? res.data.length : 0);
+            $("#lowStockCount").text(
+              res.data ? res.data.filter((i) => i.stock < 10).length : 0
+            );
+            renderInventoryTable(res.data);
+          },
+        });
+        apiRequest({
+          url: "/supplier",
+          success: (res) =>
+            $("#totalSuppliers").text(res.data ? res.data.length : 0),
+        });
+        apiRequest({
+          url: "/purchasing",
+          success: (res) =>
+            $("#totalPurchases").text(res.data ? res.data.length : 0),
+        });
+      }
+      loadStatistics();
     </script>
   </body>
 </html>
